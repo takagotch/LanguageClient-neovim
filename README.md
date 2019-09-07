@@ -16,7 +16,18 @@ impl LanguageClient {
       })
   }
   
-  pub fn loop_call() {}
+  pub fn loop_call(&self, rx: &crossbean_channel::Reciever<Call>) {
+    for call in rx.iter() {
+      let language_client = Self(self.0.clone());
+      thread::spawn(move || {
+        if let Err(err) = language_client.handle_call(call) {
+          error!("Error handling request:\n{:?}", err);
+        }
+      });
+    }
+    
+    OK(())
+  }
   
   fn sync_settings() -> Fallible<> {}
 }
